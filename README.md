@@ -6,7 +6,9 @@ Instruction Scheduling
 
 ## 2.Input description
 
-輸入n個instruction，以-1當作結束  
+1. 輸入Register File的值
+2. 輸入不同Operator的Cycle time
+3. 輸入n個instruction，以-1當作結束  
 
 :warning: 每一個instruction前面不能有空格，輸入範例如下圖一  
 
@@ -22,320 +24,187 @@ Instruction Scheduling
 
 如下圖範例輸出
 
-![image](https://github.com/fup3su6/ALCO_project3/blob/master/output.jpg)
+![image](https://github.com/fup3su6/ALCO_project4/blob/master/output.jpg)
 
 ## 4.Basic method
 
 + 利用struct建立每個instruction還有RS需要用到的元素
 + while(getline){ }將每一行instrucion讀入存起來  
 + 切割字串將需要用到的operator跟register存起來
++ 將instruction 依序Issue如果RS還有空
++ 判斷RS裡的register，如果都有值了就執行ALU
++ Write Result 將RAT與RS的值寫入
 
 ## 5.Code analysis
 
 ```c++
 #include<iostream>
 #include<string>
-#include<vector>
-#include<bitset>
+#include<cstring>
+#include<cstdio>
 using namespace std;
 ```
 使用cin/cout，`include<iostream>`  
 
 使用string取instruction，`include<string>`  
 
-使用`vector`容器存branch  
-
-會使用到2進位數字，`include<bitset>`來將10進位轉換成2進位
 
 ```c++
-string state[4] = {"SN","WN","WT","ST" };
-int Reg[32];
+string cal[6] = { "", "+","+","-","*","/" };
+int time[6];
+int f[6];
+int rat[6];
 ```
-宣告`global string array`存可能的state  
+宣告`global cal array`存operator 
 
-宣告`global int`存register的value
+宣告`global int` `time`存operator的Cycle time  
+
+宣告`global int` `f`存register file初始值
+  
+宣告`global int` `rat`存RAT
 
 ```c++
-struct pred{
-	string n;
-	int s[4];	
-	int mis;
-};
+struct RS {
+	string str1;
+	string str2;
+	int oper;
+	int rs1;
+	int rs2;
+	int rd;
+	int cycle;
+}rs[6];
+
 ```
-刻一個`struct`放predictor  
+刻一個`struct RS`  
 
-`string n` 表 **00/01/10/11**  
+`string str1` 表 **RS的第一格**  
 
-`int s[4]` 表示2*2=4個狀態，每個狀態裡存0/1/2/3，表 **SN/WN/WT/ST**  
+`string str2` 表 **RS的第二格**  
 
-`int mis` 存misprediction個數
+`int oper` 表示RS的operator  
+
+`int rs1` 存第一個register  
+
+`int rs2` 存第二個register  
+
+`int rd` 存目標register  
+
+`int cycle` 存Issue cycle  
 
 ```c++
-int main() {
-	int entries;
-	cin >> entries;
+struct INST {
+	string oper;
+	int rs1;
+	int rs2;
+	int rd;
+	int cycle;
+}inst[10000];
 ```
-宣告一個`int` 輸入`BHT entry個數`
+刻一個`struct INST`  
+
+`string oper`表instruction的operator  
+
+`int rs1` 存第一個register  
+
+`int rs2` 存第二個register  
+
+`int rd` 存目標register  
+
+`int cycle` 存Issue cycle  
 
 ```c++
-	string inst[1000];
-	int k = 0;		//第幾個beq,entry
-	int entry[1000];
-	int label[1000];
-	pred p[1000];
-	int lb = 1;
-	typedef pair<string, int> par;
-	vector<par> branch;
+	for (int i = 1;i < 6;i++) {
+		cout << "F" << i << ": ";
+		cin >> f[i];
+	}
+	cout << endl;
+	cout << "Cycle time" << endl;
+	for (int i = 1;i < 6;i++) {	
+		switch (i) {
+			case 1:
+				cout << "ADDI: ";
+				cin >> time[i];
+				break;
+			case 2:
+				cout << "ADD: ";
+				cin >> time[i];
+				break;
+			case 3:
+				cout << "SUB: ";
+				cin >> time[i];
+				break;
+			case 4:
+				cout << "MUL: ";
+				cin >> time[i];
+				break;
+			case 5:
+				cout << "DIV: ";
+				cin >> time[i];
+				break;
+		}	
+	}
+```
+跑for迴圈cin `register file`和`cycle time`  
 
-	string buffer;
-	string str[1000];
-	int pc = 0;	
-	while (getline(cin, buffer)) {  //init
-		if (buffer == "-1")
+```c++
+	for (int i = 0; i <= 5; i++) {
+		rat[i] = 0;
+		rs[i].cycle = 0;
+		rs[i].oper = 0;
+		rs[i].str1 = "0";
+		rs[i].str2 = "0";
+	}
+```
+初始化數值
+
+```c++
+	cout << endl;
+	cout << "Enter the code:" << endl<<endl;
+	string temp;
+	int k = 1;
+
+	cin.ignore();
+	while (getline(cin, temp)) {
+		if (temp == "-1")
 			break;
-		if (buffer == "")
-			continue;
-		str[pc] = buffer;
-		int pos;
-		pos = buffer.find(" ");
-		string x = buffer.substr(0, pos);
-```
-宣告一個`int pc`紀錄目前位置(表 *instrution address* )  
 
-進入while迴圈 用`getline` `cin` 字串存進`buffer`如果為 **-1**則跳出  
+		int p = temp.find(" ");
+		inst[k].oper = temp.substr(0, p);
+		temp.erase(0, p + 1);
 
-將buffer(instrucions)存入`str陣列`  
+		int p1 = temp.find("F");
+		int p2 = temp.find(",");
+		inst[k].rd = stoi(temp.substr(p1 + 1, p2 - p1 - 1));
+		temp.erase(0, p2 + 1);
 
-宣告`int pos`紀錄當前inst內的 *第一個空格的位置*，再用`substr`方法將每行inst第一個空格前的字串存入`x`。ex: add、beq…(0到pos)
-
-```c++
-		if (x == "beq") {
-			branch.push_back(par(buffer, k));
-			inst[k] = buffer;
-			entry[k] = pc % entries;
-			for (int i = 0; i <= 3;i++)
-			p[entry[k]].s[i] = 0;
-			p[entry[k]].n = "00";
-			p[entry[k]].mis = 0;
-			k++;
+		p1 = temp.find("F");
+		p2 = temp.find(",");
+		inst[k].rs1 = stoi(temp.substr(p1 + 1, p2 - p1 - 1));
+		temp.erase(0, p2 + 1);
+		if (inst[k].oper == "ADDI")
+			inst[k].rs2 = stoi(temp);
+		else {
+			p1 = temp.find("F");
+			p2 = temp.size();
+			inst[k].rs2 = stoi(temp.substr(p1 + 1, p2));
 		}
+
+		k++;
+
+	}
 ```
-如果x為`beq`，將`pair(buffer(*instruction*), k(*第k個branch*))` **push.back**進入在while迴圈外宣告的`vector<pair>`型態的branch  
+輸入code並用getline讀入  
 
-將buffer( *instruction* )放進在while迴圈外宣告的`inst array`(*存第k個branch的指令*)  
+如果輸入**-1**就停止  
 
-將`pc % entries`放進在while迴圈外宣告的`entry array`(*存第k個branch的entry*)  
+找到空格切出operator存起來後把位子`0`到`p+1`刪除  
 
-Run 一個for迴圈，將第`entry[k]`的`p`裡的`s`**初始化**(*p為在while迴圈外宣告的pred struct型態的陣列，存對應entry的predict資訊*)  
+找到`F`的位子=`p1` ; `,`的位子=`p2`  
 
-再將第`entry[k]`的`p`裡的`n`、`mis`**初始化**
+切割字串從`p1+1`到`p2-p1-1`並利用`stoi`轉成`int`存起來   
 
-```c++
-		pos = buffer.find(":");
-		if (pos != -1) {
-			label[lb] = pc;
-			lb++;
-			continue;
-		}
-		pc++;
-	}//end while
-```
-讓pos為找到下一個`:`，如果`:`存在代表此行有label要記錄  
-將`pc(address)`存入`label[lb]`(*label陣列存label的address，lb為第幾格label*)，pc++，結束while迴圈  
+重複上面的方法存完所有需要用到的register 
 
-```c++
-	for (int j = 0; j < pc;j++) {
-		int pos;
-		buffer = str[j];
-		pos = buffer.find(" ");
-		string x = buffer.substr(0, pos);
-```
-進入for迴圈，跑pc次(*pc=inst數量*)，同以上方法得到x(*每行inst第一個空格前的字串*)
 
-```c++
-		if (x == "beq") {
-			pos = buffer.find("R");
-			int pos2 = buffer.find(",");
-			string m = buffer.substr(pos + 1, pos2 - pos - 1);
-			int r1 = stoi(m);
 
-			buffer.erase(0, pos2 + 1);
-			pos = buffer.find("R");
-			pos2 = buffer.find(",");
-			m = buffer.substr(pos + 1, pos2 - pos - 1);
-			int r2 = stoi(m);
-
-			buffer.erase(0, pos2 + 1);
-			m = buffer.substr(1, buffer.size());
-			int la = stoi(m);
-```
-如果x為`beq`，用`pos`、`pos2`取第一個R後面的數字，再用`stoi`轉成`int`放入`r1`  
-用`erase`將前面取過的擦掉，以同樣方法取第二個register數字放入`r2`，最後的數字放入`la`
-
-```c++
-			int idx;
-			for (int i = 0;i < branch.size();i++) {
-				if (branch[i].first == str[j]) {
-					idx = branch[i].second;
-					cout << "entry: " << entry[idx] << "　　　" << inst[idx] << endl;
-					cout << "(" << p[entry[idx]].n << ", " << state[p[entry[idx]].s[0]] << ", " << state[p[entry[idx]].s[1]] << ", " << state[p[entry[idx]].s[2]] << ", " << state[p[entry[idx]].s[3]] << ")";
-				}
-			}
-```
-宣告一個`index(idx)`，代表第idx個branch  
-
-用一個for迴圈跑完所有branch，如果branch pair的第一個(*instrucion*)找到對應的指令，將idx存入(*branch的第二個*)  
-
-輸出對應`entry`的`instruction`、`state`
-
-```c++
-			bool pp = false, real = false;
-			bitset<2> b(p[entry[idx]].n);
-			unsigned long x = b.to_ulong();
-			if (p[entry[idx]].s[x] == 0 || p[entry[idx]].s[x] == 1) {
-				pp = false;
-				cout << " N ";
-			}
-			else {
-				pp = true;
-				cout << " T ";
-			}
-```
-宣告`bool pp`，表**預測值**，`bool real`表**實際值**  
-
-宣告`2 bit` 的`bitset`將目前對應的`predictor`的`n`轉成2bit binary number存入x，如果`predictor`的`s[x] == 0 or 1`，表示目前`state`為 SN or WN  
-
-預測值`pp`為*false*，輸出**Not taken**；else預測值`pp`為*true*，輸出**taken**
-
-```c++
-			if (Reg[r1] == Reg[r2]) {
-				real = true;
-				if (p[entry[idx]].s[x] < 3)
-					p[entry[idx]].s[x]++;
-
-				p[entry[idx]].n += "1";
-				p[entry[idx]].n.erase(0, 1);
-
-				j = label[la] - 1;
-				if (real != pp)
-					p[entry[idx]].mis++;
-				cout << "T          misprediction:  " << p[entry[idx]].mis << endl;
-				continue;
-			}
-```
-
-如果`r1`在register裡的值**=**`r2`在register裡的值，表示`beq`會跳  
-
-設實際值為*true*，且如果`s[x]!=3`，也就是**目前state不等於ST的話**，state往後一個  
-
-目前`predictor`的`n`狀態+1(**n+”1”**，再`erase`掉最前面的)  
-
-`設j = label[la] – 1`，讓下一次for的j++後j會等於`label[la]`，也就是*跳到label[la]的位置*  
-
-如果**實際值!=預測值**，`misprediction++`  
-
-輸出**taken**、**misprediction**數量
-
-```c++
-			else {
-				real = false;
-				if (p[entry[idx]].s[x] > 0)
-					p[entry[idx]].s[x]--;
-
-				p[entry[idx]].n += "0";
-				p[entry[idx]].n.erase(0, 1);
-
-				if (real != pp)
-					p[entry[idx]].mis++;
-				cout << "N          misprediction:  " << p[entry[idx]].mis << endl;
-			}
-		}//end if
-```
-
-如果`r1`在register裡的值**!=**`r2`在register裡的值，表示`beq`不會跳  
-
-設實際值為*false*，且如果`s[x]!=0`，也就是**目前state不等於WN的話**，state往前一個  
-
-目前`predictor`的`n`狀態+1(**n+”0”**，再`erase`掉最前面的)  
-
-如果**實際值!=預測值**，`misprediction++`  
-
-輸出**Not taken**、**misprediction**數量  
-
-End if(x == beq)
-```c++
-		else if (x == "li") {
-			pos = buffer.find("R");
-			int pos2 = buffer.find(",");
-			string m = buffer.substr(pos + 1, pos2 - pos - 1);
-			int r = stoi(m);
-			buffer.erase(0, pos2 + 1);
-			int value = stoi(buffer);
-			Reg[r] = value;
-		}
-```
-
-如果x為`li`，用`pos`、`pos2`取第一個R後面的數字，再用`stoi`轉成`int`放入`r`    
-
-用`erase`將前面取過的擦掉，最後的數字放入`value`  
-
-將`value`放入第`r`個`Reg`裡
-
-```c++
-		else if (x == "addi") {
-			pos = buffer.find("R");
-			int pos2 = buffer.find(",");
-			string m = buffer.substr(pos + 1, pos2 - pos - 1);
-			int r1 = stoi(m);
-
-			buffer.erase(0, pos2 + 1);
-			pos = buffer.find("R");
-			pos2 = buffer.find(",");
-			m = buffer.substr(pos + 1, pos2 - pos - 1);
-			int r2 = stoi(m);
-
-			buffer.erase(0, pos2 + 1);
-			int value = stoi(buffer);
-
-			Reg[r1] = Reg[r2] + value;
-		}
-```
-如果x為`addi`，用`pos`、`pos2`取第一個R後面的數字，再用`stoi`轉成`int`放入`r1`  
-
-用`erase`將前面取過的擦掉，以同樣方法取第二個register數字放入`r2`，最後的數字放入`value`  
-
-將`value`加上第`r2`個`Reg`，再放入第`r1`個`Reg`裡
-
-```c++
-		else if (x == "add") {
-			pos = buffer.find("R");
-			int pos2 = buffer.find(",");
-			string m = buffer.substr(pos + 1, pos2 - pos - 1);
-			int rd = stoi(m);
-
-			buffer.erase(0, pos2 + 1);
-			pos = buffer.find("R");
-			pos2 = buffer.find(",");
-			m = buffer.substr(pos + 1, pos2 - pos - 1);
-			int r1 = stoi(m);
-
-			buffer.erase(0, pos2 + 1);
-			m = buffer.substr(1, buffer.size());
-			int r2 = stoi(m);
-
-			Reg[rd] = Reg[r1] + Reg[r2];
-		}
-	}//end for
-}//end main
-```
-
-如果x為`add`，用`pos`、`pos2`取第一個R後面的數字，再用`stoi`轉成`int`放入`rd`  
-
-用`erase`將前面取過的擦掉，以同樣方法取第二個register數字放入`r1`，最後的數字放入`r2`  
-
-將第`r1`個`Reg`加上第`r2`個`Reg`，再放入第`rd`個`Reg`裡  
-
-End for  
-
-End main
 # ALCO_project4
