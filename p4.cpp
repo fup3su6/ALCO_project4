@@ -5,9 +5,8 @@
 using namespace std;
 
 string cal[6] = { "", "+","+","-","*","/" };
-int time[6] = { 0,1,1,1,5,10 };
-int f[6] = { 0,0,2,4,6,8 };
-
+int time[6];
+int f[6];
 int rat[6];
 
 struct RS {
@@ -29,6 +28,38 @@ struct INST {
 }inst[10000];
 
 int main() {
+	for (int i = 1;i < 6;i++) {
+		cout << "F" << i << ": ";
+		cin >> f[i];
+	}
+	cout << endl;
+	cout << "Cycle time" << endl;
+	for (int i = 1;i < 6;i++) {	
+		switch (i) {
+			case 1:
+				cout << "ADDI: ";
+				cin >> time[i];
+				break;
+			case 2:
+				cout << "ADD: ";
+				cin >> time[i];
+				break;
+			case 3:
+				cout << "SUB: ";
+				cin >> time[i];
+				break;
+			case 4:
+				cout << "MUL: ";
+				cin >> time[i];
+				break;
+			case 5:
+				cout << "DIV: ";
+				cin >> time[i];
+				break;
+		}	
+	}
+	cout << endl;
+	cout << "Enter the code:" << endl<<endl;
 	string temp;
 	int k = 1;
 	for (int i = 0; i <= 5; i++) {
@@ -38,6 +69,7 @@ int main() {
 		rs[i].str1 = "0";
 		rs[i].str2 = "0";
 	}
+	cin.ignore();
 	while (getline(cin, temp)) {
 		if (temp == "-1")
 			break;
