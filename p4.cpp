@@ -1,13 +1,12 @@
-#include<iostream>
+﻿#include<iostream>
 #include<string>
 #include<cstring>
 #include<cstdio>
 using namespace std;
 
 string cal[6] = { "", "+","+","-","*","/" };
-int time[6] = { 0,1,1,1,5,10 };
-int f[6] = { 0,0,2,4,6,8 };
-
+int time[6];
+int f[6];
 int rat[6];
 
 struct RS {
@@ -29,6 +28,38 @@ struct INST {
 }inst[10000];
 
 int main() {
+	for (int i = 1; i < 6; i++) {
+		cout << "F" << i << ": ";
+		cin >> f[i];
+	}
+	cout << endl;
+	cout << "Cycle time" << endl;
+	for (int i = 1; i < 6; i++) {
+		switch (i) {
+		case 1:
+			cout << "ADDI: ";
+			cin >> time[i];
+			break;
+		case 2:
+			cout << "ADD: ";
+			cin >> time[i];
+			break;
+		case 3:
+			cout << "SUB: ";
+			cin >> time[i];
+			break;
+		case 4:
+			cout << "MUL: ";
+			cin >> time[i];
+			break;
+		case 5:
+			cout << "DIV: ";
+			cin >> time[i];
+			break;
+		}
+	}
+	cout << endl;
+	cout << "Enter the code:" << endl << endl;
 	string temp;
 	int k = 1;
 	for (int i = 0; i <= 5; i++) {
@@ -38,6 +69,7 @@ int main() {
 		rs[i].str1 = "0";
 		rs[i].str2 = "0";
 	}
+	cin.ignore();
 	while (getline(cin, temp)) {
 		if (temp == "-1")
 			break;
@@ -74,13 +106,24 @@ int main() {
 			while (true) {
 				if (chk == 1)
 					break;
-				if (rs[1].oper == 0 || rs[2].oper == 0 || rs[3].oper == 0) { //���Ŧ�
+				if (rs[1].oper == 0 || rs[2].oper == 0 || rs[3].oper == 0) { //¦³ªÅ¦ì
 					chk = 1;
 					for (int j = 1; j <= 3; j++) {
 						if (rs[j].oper == 0) {
 							rs[j].rd = inst[i].rd;
-							rs[j].rs1 = inst[i].rs1;
-							rs[j].rs2 = inst[i].rs2;
+							if (rat[inst[i].rs1] == 0)
+								rs[j].rs1 = f[inst[i].rs1];
+							else
+								rs[j].str1 = "RS" + to_string(rat[inst[i].rs1]);
+							if (inst[i].oper == "ADDI") {
+								rs[j].rs2 = inst[i].rs2;
+							}
+							else {
+								if (rat[inst[i].rs2] == 0)
+									rs[j].rs2 = f[inst[i].rs2];
+								else
+									rs[j].str2 = "RS" + to_string(rat[inst[i].rs2]);
+							}
 							rs[j].cycle = i + add;  //issue cycle
 							//cout << "Cycle: " << rs[j].cycle << endl;
 							if (inst[i].oper == "ADDI") {
@@ -103,7 +146,7 @@ int main() {
 						}
 					}
 				}
-				else {  //�S�Ŧ�
+				else {  //¨SªÅ¦ì
 					add++;
 				}
 			}
@@ -117,8 +160,14 @@ int main() {
 					for (int j = 4; j <= 5; j++) {
 						if (rs[j].oper == 0) {
 							rs[j].rd = inst[i].rd;
-							rs[j].rs1 = inst[i].rs1;
-							rs[j].rs2 = inst[i].rs2;
+							if (rat[inst[i].rs1] == 0)
+								rs[j].rs1 = f[inst[i].rs1];
+							else
+								rs[j].str1 = "RS" + to_string(rat[inst[i].rs1]);
+							if (rat[inst[i].rs2] == 0)
+								rs[j].rs2 = f[inst[i].rs2];
+							else
+								rs[j].str2 = "RS" + to_string(rat[inst[i].rs2]);
 							rs[j].cycle = i + add;
 							//cout << "Cycle: " << rs[j].cycle << endl;
 							if (inst[i].oper == "DIV") {
@@ -138,7 +187,147 @@ int main() {
 					add++;
 			}
 		}
+
+		string buf = "0";
+		for (int j = 1; j <= 3; j++) {
+			
+			if (rs[j].str1 == "0" && rs[j].str2 == "0" && rs[j].oper != 0) {
+				//if (cycle[rs[j].oper] + 1 == time[rs[j].oper])
+				buf = "(RS" + to_string(j) + ") " + to_string(rs[j].rs1) + cal[rs[j].oper] + to_string(rs[j].rs2);
+				if (cycle[rs[j].oper] == time[rs[j].oper]) {
+					int value;
+					if (rs[j].oper == 1 || rs[j].oper == 2)
+						value = rs[j].rs1 + rs[j].rs2;
+					if (rs[j].oper == 3)
+						value = rs[j].rs1 - rs[j].rs2;
+					if (rs[j].oper == 4)
+						value = rs[j].rs1 * rs[j].rs2;
+					if (rs[j].oper == 5)
+						value = rs[j].rs1 / rs[j].rs2;
+					for (int p = 1; p <= 5; p++) {
+						if (rat[p] == j) {  //wr rat
+							f[rs[j].rd] = value;
+							if ("RS" + to_string(rat[p]) == rs[p].str1) //wr rs
+								rs[j].rs1 = value;
+							if ("RS" + to_string(rat[p]) == rs[p].str2)
+								rs[j].rs2 = value;
+
+							rat[p] = 0;
+						}
+					}
+					rs[j].oper = 0;  //rs out
+				}
+				else
+					cycle[rs[j].oper]++;
+				break;
+			}
+		}
+
+
+		cout << "Cycle: " << ++ct << endl << endl;
+		cout << "     _ RF __" << endl;
+		cout << "  F1 |   " << f[1] << " |" << endl;
+		cout << "  F2 |   " << f[2] << " |" << endl;
+		cout << "  F3 |   " << f[3] << " |" << endl;
+		cout << "  F4 |   " << f[4] << " |" << endl;
+		cout << "  F5 |   " << f[5] << " |" << endl;
+		cout << "     -------" << endl;
+
+		cout << "     _ RAT __" << endl;
+		for (int j = 1; j <= 5; j++) {
+			if (rat[j] == 0)
+				cout << "  F" + to_string(j) + " |       |" << endl;
+			else
+				cout << "  F" + to_string(j) + " |  " << " RS" << rat[j] << " |" << endl;
+		}
+		cout << "     -------\n" << endl;
+
+		cout << "    _ RS _________________" << endl;
+		for (int j = 1; j <= 3; j++) {
+			if (rs[j].oper == 0)
+				cout << "RS" << to_string(j) << " |      |      |      |\n";
+			else {
+				if (rs[j].str1!="0") {
+					if (rs[j].str2 != "0") 
+						cout << "RS" << to_string(j) << " |    " << cal[rs[j].oper] << " |  " << rs[j].str1 << " |  " << rs[j].str2 << " |\n";
+					else
+						cout << "RS" << to_string(j) << " |    " << cal[rs[j].oper] << " |  " << rs[j].str1 << " |    " << rs[j].rs2 << " |\n";
+				}
+				else {
+					if (rs[j].str2 != "0") 
+						cout << "RS" << to_string(j) << " |    " << cal[rs[j].oper] << " |    " << rs[j].rs1 << " |  " << rs[j].str2 << " |\n";
+					
+					else
+						cout << "RS" << to_string(j) << " |    " << cal[rs[j].oper] << " |    " << rs[j].rs1 << " |    " << rs[j].rs2 << " |\n";
+				}
+			}
+		}
+		cout << "    ----------------------\n" << endl;
+		cout << "BUFFER: ";
+		if (buf == "0")
+			cout << "empty\n\n";
+		else {
+			cout << buf << endl << endl;
+		}
+		string buf2 = "0";
+		for (int j = 4; j <= 5; j++) {
+			if (rs[j].str1 == "0" && rs[j].str2 == "0" && rs[j].oper != 0) {
+				buf2 = "(RS" + to_string(j) + ") " + to_string(rs[j].rs1) + cal[rs[j].oper] + to_string(rs[j].rs2);
+				if (cycle[rs[j].oper] == time[rs[j].oper]) {
+					int value;
+					if (rs[j].oper == 1 || rs[j].oper == 2)
+						value = rs[j].rs1 + rs[j].rs2;
+					if (rs[j].oper == 3)
+						value = rs[j].rs1 - rs[j].rs2;
+					if (rs[j].oper == 4)
+						value = rs[j].rs1 * rs[j].rs2;
+					if (rs[j].oper == 5)
+						value = rs[j].rs1 / rs[j].rs2;
+					for (int p = 1; p <= 5; p++) {
+						if (rat[p] == j) {  //wr rat
+							f[rs[j].rd] = value;
+							if ("RS" + to_string(rat[p]) == rs[p].str1) //wr rs
+								rs[j].rs1 = value;
+							if ("RS" + to_string(rat[p]) == rs[p].str2)
+								rs[j].rs2 = value;
+
+							rat[p] = 0;
+						}
+					}
+					rs[j].oper = 0;  //rs out
+				}
+				else
+					cycle[rs[j].oper]++;
+				break;
+			}
+		}
+
+		cout << "    _ RS _________________" << endl;
+		for (int j = 4; j <= 5; j++) {
+			if (rs[j].oper == 0)
+				cout << "RS" << to_string(j) << " |      |      |      |\n";
+			else {
+				if (rs[j].str1 != "0") {
+					if (rs[j].str2 != "0") 
+						cout << "RS" << to_string(j) << " |    " << cal[rs[j].oper] << " |  " << rs[j].str1 << " |  " << rs[j].str2 << " |\n";
+					else
+						cout << "RS" << to_string(j) << " |    " << cal[rs[j].oper] << " |  " << rs[j].str1 << " |    " << rs[j].rs2 << " |\n";
+				}
+				else {
+					if (rs[j].str2 != "0") 
+						cout << "RS" << to_string(j) << " |    " << cal[rs[j].oper] << " |    " << rs[j].rs1 << " |  " << rs[j].str2 << " |\n";
+					else
+						cout << "RS" << to_string(j) << " |    " << cal[rs[j].oper] << " |    " << rs[j].rs1 << " |    " << rs[j].rs2 << " |\n";
+				}
+			}
+		}
+		cout << "    ----------------------\n" << endl;
+		cout << "BUFFER: ";
+		if (buf2 == "0")
+			cout << "empty\n\n";
+		else
+			cout << buf2 << endl << endl;
+	}
+
+	system("pause");
 }
-
-
-
