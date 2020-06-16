@@ -330,7 +330,7 @@ void print(int ct) {
 					rs[j].oper = 0;  //rs out
 					int a = 0;
 					for (int p = 1; p <= 5; p++) {
-						for (int q = 4; q <= 5; q++) {
+						for (int q = 1; q <= 3; q++) {
 							if (rs[q].str1 == "RS" + to_string(j) || rs[q].str2 == "RS" + to_string(j)) {
 								cout << "p: " << p << "  j: " << j << "  q: " << q << endl << endl;
 								if ("RS" + to_string(j) == rs[q].str1) { //wr rs
@@ -358,7 +358,7 @@ void print(int ct) {
 					rs[j].oper = 0;  //rs out
 					int a = 0;
 					for (int p = 1; p <= 5; p++) {
-						for (int q = 4; q <= 5; q++) {
+						for (int q = 1; q <= 3; q++) {
 							if (rs[q].str1 == "RS" + to_string(j) || rs[q].str2 == "RS" + to_string(j)) {
 								cout << "p: " << p << "  j: " << j << "  q: " << q << endl << endl;
 								if ("RS" + to_string(j) == rs[q].str1) { //wr rs
