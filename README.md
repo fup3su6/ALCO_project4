@@ -2,7 +2,7 @@
 
 ## 1.Topic
 
-Instruction Scheduling
+Instruction Scheduling :pushpin:
 
 ## 2.Input description
 
@@ -374,7 +374,7 @@ issue完呼叫`print funtion`把output印出
 ```
 判斷如果issue為`MUL/DIV`且`rs`有空位,將值存入rs  
 
-**注意**如果DIV的**除數為0**,跳出例外狀況結束程式    
+**注意:**  如果DIV的**除數為0**,跳出例外狀況結束程式    
 
 issue完呼叫`print funtion`把output印出 
 
