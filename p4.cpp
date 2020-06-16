@@ -2,8 +2,6 @@
 #include<string>
 #include<cstring>
 #include<cstdio>
-#include<algorithm>
-#include<queue>
 using namespace std;
 
 void print(int ct);
@@ -36,7 +34,7 @@ struct INST {
 	int cycle;
 }inst[10000];
 
-void input(int& k) {
+void input(int &k) {
 	for (int i = 1; i < 6; i++) {
 		cout << "F" << i << ": ";
 		cin >> f[i];
@@ -117,9 +115,9 @@ int main() {
 			if (rs[j].oper == 0)
 				yy++;
 		}
-		if (yy == 5 && i > k)
+		if (yy == 5 && i > k) 
 			return 0;
-
+		
 
 		int add = 0;
 		int chk = 0;   //chk issue
@@ -201,7 +199,7 @@ int main() {
 										cout << "Exception:  divide by 0 !!!" << endl;
 										return 0;
 									}
-
+										
 								}
 								else
 									rs[j].str2 = "RS" + to_string(rat[inst[i].rs2]);
@@ -230,7 +228,7 @@ int main() {
 				}
 			}
 		}
-		else
+		else 
 			print(ct++);
 	}
 }
@@ -238,7 +236,7 @@ int main() {
 void print(int ct) {
 	string buf = "0";
 	int value;
-	int prev = 0, prev2 = 0;
+	int prev = 0,prev2=0;
 
 	for (int j = 1; j <= 3; j++) {
 		if (rs[j].oper == 1 || rs[j].oper == 2)
@@ -250,7 +248,7 @@ void print(int ct) {
 		if (rs[j].oper == 5)
 			value = rs[j].rs1 / rs[j].rs2;
 		if (rs[j].str1 == "0" && rs[j].str2 == "0" && rs[j].oper != 0) {//exec
-			if (rs[j].cycle + 1 == ct) {
+			if (rs[j].cycle + 1 == ct){
 				buf = "(RS" + to_string(j) + ") " + to_string(rs[j].rs1) + cal[rs[j].oper] + to_string(rs[j].rs2);
 				pp2 = j;
 			}
@@ -276,9 +274,9 @@ void print(int ct) {
 
 				}
 			}
-			if ((rs[j].cycle + 1 < ct) && pp2 != j)
+			if((rs[j].cycle+1<ct)&& pp2!=j)
 				buf = "(RS" + to_string(j) + ") " + to_string(rs[j].rs1) + cal[rs[j].oper] + to_string(rs[j].rs2);
-			if ((rs[j].cycle + 1 + time[rs[j].oper] < ct) && pp2 != j) { //wr
+			if ((rs[j].cycle + 1 + time[rs[j].oper] < ct) && pp2!=j) { //wr
 				f[rs[j].rd] = value;
 				rs[j].oper = 0;  //rs out
 				int a = 0;
@@ -301,7 +299,7 @@ void print(int ct) {
 
 				}
 			}
-
+			
 		}
 		else {
 			if (rs[j].oper == 0)
@@ -462,7 +460,7 @@ void print(int ct) {
 		buf = "0";
 		buf2 = "0";
 	}
-
+		
 	cout << "BUFFER: ";
 	if (buf2 == "0")
 		cout << "empty\n\n";
