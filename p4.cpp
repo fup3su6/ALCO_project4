@@ -108,8 +108,8 @@ void input(int &k) {
 int main() {
 	input(k);
 
-	int cycle[6] = { 0 }, ct = 0, n = 1;
-	for (i = 1; n = 1; i++) { //¦pªGrsªÅ,instªÅ´N°±¤î
+	int ct = 0, n = 1;
+	for (i = 1; n = 1; i++) { //å¦‚æœrsç©º,instç©ºå°±åœæ­¢
 		int yy = 0;
 		for (int j = 1; j <= 5; j++) {
 			if (rs[j].oper == 0)
@@ -126,19 +126,19 @@ int main() {
 				while (true) {
 					if (chk == 1)
 						break;
-					if (rs[1].oper == 0 || rs[2].oper == 0 || rs[3].oper == 0) { //¦pªG¦³¦ì¤l   issue
+					if (rs[1].oper == 0 || rs[2].oper == 0 || rs[3].oper == 0) { //å¦‚æœæœ‰ä½å­   issue
 						chk = 1;
 						ct++;
 						for (int j = 1; j <= 3; j++) {//issue
 							if (rs[j].oper == 0) {
-								rs[j].rd = inst[i].rd;//©ñrd
+								rs[j].rd = inst[i].rd;//æ”¾rd
 
-								if (rat[inst[i].rs1] == 0)//©ñrs1
+								if (rat[inst[i].rs1] == 0)//æ”¾rs1
 									rs[j].rs1 = f[inst[i].rs1];
 								else
 									rs[j].str1 = "RS" + to_string(rat[inst[i].rs1]);
 
-								if (inst[i].oper == "ADDI") {//©ñrs2
+								if (inst[i].oper == "ADDI") {//æ”¾rs2
 									rs[j].rs2 = inst[i].rs2;
 								}
 								else {
@@ -170,7 +170,7 @@ int main() {
 							}
 						}
 					}
-					else {  //¨S¦³ªÅ¦ì
+					else {  //æ²’æœ‰ç©ºä½
 						ct++;
 						add++;
 						print(ct);
@@ -186,14 +186,14 @@ int main() {
 						ct++;
 						for (int j = 4; j <= 5; j++) {
 							if (rs[j].oper == 0) {
-								rs[j].rd = inst[i].rd; //©ñrd
+								rs[j].rd = inst[i].rd; //æ”¾rd
 
-								if (rat[inst[i].rs1] == 0) //©ñrs1
+								if (rat[inst[i].rs1] == 0) //æ”¾rs1
 									rs[j].rs1 = f[inst[i].rs1];
 								else
 									rs[j].str1 = "RS" + to_string(rat[inst[i].rs1]);
 
-								if (rat[inst[i].rs2] == 0) {  //©ñrs2
+								if (rat[inst[i].rs2] == 0) {  //æ”¾rs2
 									rs[j].rs2 = f[inst[i].rs2];
 									if (rs[j].rs2 == 0) {
 										cout << "Exception:  divide by 0 !!!" << endl;
@@ -236,7 +236,7 @@ int main() {
 void print(int ct) {
 	string buf = "0";
 	int value;
-	int prev = 0,prev2=0;
+	int prev = 0;
 
 	for (int j = 1; j <= 3; j++) {
 		if (rs[j].oper == 1 || rs[j].oper == 2)
@@ -255,7 +255,6 @@ void print(int ct) {
 			if (rs[j].cycle + 1 + time[rs[j].oper] == ct) { //wr
 				f[rs[j].rd] = value;
 				rs[j].oper = 0;  //rs out
-				int a = 0;
 				for (int p = 1; p <= 5; p++) {
 					for (int q = 1; q <= 3; q++) {
 						if (rs[q].str1 == "RS" + to_string(j) || rs[q].str2 == "RS" + to_string(j)) {
@@ -279,7 +278,6 @@ void print(int ct) {
 			if ((rs[j].cycle + 1 + time[rs[j].oper] < ct) && pp2!=j) { //wr
 				f[rs[j].rd] = value;
 				rs[j].oper = 0;  //rs out
-				int a = 0;
 				for (int p = 1; p <= 5; p++) {
 					for (int q = 1; q <= 3; q++) {
 						if (rs[q].str1 == "RS" + to_string(j) || rs[q].str2 == "RS" + to_string(j)) {
@@ -332,7 +330,7 @@ void print(int ct) {
 					rs[j].oper = 0;  //rs out
 					int a = 0;
 					for (int p = 1; p <= 5; p++) {
-						for (int q = 1; q <= 3; q++) {
+						for (int q = 4; q <= 5; q++) {
 							if (rs[q].str1 == "RS" + to_string(j) || rs[q].str2 == "RS" + to_string(j)) {
 								cout << "p: " << p << "  j: " << j << "  q: " << q << endl << endl;
 								if ("RS" + to_string(j) == rs[q].str1) { //wr rs
@@ -360,7 +358,7 @@ void print(int ct) {
 					rs[j].oper = 0;  //rs out
 					int a = 0;
 					for (int p = 1; p <= 5; p++) {
-						for (int q = 1; q <= 3; q++) {
+						for (int q = 4; q <= 5; q++) {
 							if (rs[q].str1 == "RS" + to_string(j) || rs[q].str2 == "RS" + to_string(j)) {
 								cout << "p: " << p << "  j: " << j << "  q: " << q << endl << endl;
 								if ("RS" + to_string(j) == rs[q].str1) { //wr rs
